@@ -49,11 +49,7 @@ export default function Home() {
   
   const usuarioAleatorio = 'RafaelN0bre';
   // Essa 'variável' retorna duas coisas, o valor dentro dos parênteses e uma função interna "native code"
-  const [comunidades, setComunidades] = React.useState([{
-    id : '3423423423849349348234902343232',
-    title : 'Eu odeio acordar cedo',
-    image :  'https://alurakut.vercel.app/capa-comunidade-01.jpg'
-}]);
+  const [comunidades, setComunidades] = React.useState([]);
   // Essa linha de cima faz o mesmo que a linha de baixo, cria duas variáveis, uma com cada elemento
   // const comunidades = comunidades[0]
   // const setComunidades = comunidades[1]
@@ -75,6 +71,38 @@ export default function Home() {
     })
     .then(function (respostaCompleta) {
       setSeguidores(respostaCompleta)
+    })
+
+
+    // API GraphQL
+        // Como segundo parâmetro do fetch a gente passa o método, que é um post
+
+    fetch('https://graphql.datocms.com/', {
+      method : 'POST',
+      headers : {
+        'Authorization' : 'd7a54f6183e092f9066f85dade1374',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+
+      },
+      body : JSON.stringify({ "query": `query {
+        allCommunities{
+            title
+            id
+            imageUrl
+            creatorSlug
+        }
+      }` })
+    }) 
+    // .then(function(response){
+    //   return response.json()
+    // })
+    .then((response) => response.json())
+    .then((respostaCompleta) => {
+      const comunidadesDato = respostaCompleta.data.allCommunities
+      console.log(comunidadesDato)
+      setComunidades(comunidadesDato)
+     
     })
   }, [])
   
@@ -107,13 +135,30 @@ export default function Home() {
               console.log ("Campo", dadosdoForm.get('image'))
               
               const comunidade = {
-                id : new Date().toISOString(),
                 title : dadosdoForm.get('title'),
-                image : dadosdoForm.get('image'),
+                imageUrl : dadosdoForm.get('image'),
+                creatorSlug : usuarioAleatorio,
               }
-              // Esses três pontinhos são chamados de Spread, você coloca um array e ele vai espalhar os elementos desse array junto a qualquer outro elemento
-              const comunidadesAtualizadas = [...comunidades, comunidade]
-              setComunidades(comunidadesAtualizadas) 
+
+              fetch('/api/comunidades', {
+                method : 'POST',
+                headers : {
+                  'Content-Type' : 'application/json',
+                },
+                body : JSON.stringify(comunidade)
+              })
+              .then(async (response) => {
+                const dados = await response.json()
+                console.log(dados.registroCriado)
+                const comunidade = dados.registroCriado
+                
+                // Esses três pontinhos são chamados de Spread, você coloca um array e ele vai espalhar os elementos desse array junto a qualquer outro elemento
+                const comunidadesAtualizadas = [...comunidades, comunidade]
+                setComunidades(comunidadesAtualizadas) 
+              })
+
+
+              
             }}>  
                 <div>
                   <input 
@@ -148,8 +193,8 @@ export default function Home() {
               {comunidades.map((itemAtual) => {
                 return (
                   <li key = {itemAtual.id}>
-                    <a href={`/users/${itemAtual.title}`}>
-                      <img src={itemAtual.image}/> 
+                    <a href={`/comunidades/${itemAtual.id}`}>
+                      <img src={itemAtual.imageUrl}/> 
                       <span>{itemAtual.title}</span>
                     </a>
                   </li>
