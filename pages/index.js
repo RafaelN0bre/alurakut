@@ -1,5 +1,7 @@
 import React from 'react'
 import MainGrid from '../src/components/MainGrid'
+import nookies from 'nookies'
+import jwt from 'jsonwebtoken'
 import Box from '../src/components/Box'
 import { AlurakutMenu, AlurakutProfileSidebarMenuDefault, OrkutNostalgicIconSet } from '../src/lib/AlurakutCommons';
 import { ProfileRelationsBoxWrapper } from '../src/components/ProfileRelations';
@@ -45,9 +47,9 @@ function ProfileRelationsBox  (propriedades) {
 
 }
 
-export default function Home() {
+export default function Home(props) {
   
-  const usuarioAleatorio = 'RafaelN0bre';
+  const usuarioAleatorio = props.githubUser;
   // Essa 'variável' retorna duas coisas, o valor dentro dos parênteses e uma função interna "native code"
   const [comunidades, setComunidades] = React.useState([]);
   // Essa linha de cima faz o mesmo que a linha de baixo, cria duas variáveis, uma com cada elemento
@@ -224,4 +226,17 @@ export default function Home() {
       </MainGrid>
     </>
   )
+}
+
+export async function getServerSideProps(context){
+  const cookies = nookies.get(context)
+  const token = cookies.USER_TOKEN
+  const {githubUser} = jwt.decode(token)
+  return {
+    props : {
+      githubUser
+    },
+
+  }
+
 }
